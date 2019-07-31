@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,minimum-scale=1.0,user-scalable=no">
+    <title>Excel WEB APP</title>
+    <link rel="stylesheet" href="style/excel.min.css" />
+
+    <style>
+        .skeleton {
+            position: fixed;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            background-color: #fafafa;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .skeleton:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 3rem;
+            background-color: #c1c1c1;
+        }
+        .skeleton:after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 1rem;
+            background-color: #c1c1c1;
+        }
+        .skeleton-loading {
+            width: 4rem;
+            height: 4rem;
+            border-radius: 50%;
+            border: .25rem solid #3351FF;
+            border-top-color: transparent;
+            border-bottom-color: transparent;
+            animation: spin 1s infinite;
+        }
+        @keyframes spin {
+            from {transform: rotate(0); }
+            to   {transform: rotate(180deg); }
+        }
+    </style>
+</head>
+<body>
+    <header></header>
+
+    <main id="app">
+        <div class="skeleton"><span class="skeleton-loading"></span></div>
+    </main>
+
+    <footer></footer>
+
+    <script type="module">
+        import Excel from './script/excel.min.js';
+
+        const demoData = [
+            ['编号', '昵称', '性别', '品种', '年龄', '体重(KG)', '登记日期'],
+            ['1', 'Chun Juan', '公', '大橘', '1.5', '3.25', '2017/10/01'],
+            ['2', 'Tang Yuan', '公', '暹罗', '1', '2.7', '2018/09/27'],
+            ['3', 'Kenono', '公', '大橘', '3', '5.12', '2016/05/15'],
+            ['4', 'Xiao Bai', '公', '孟买', '5', '4.28', '2014/08/12'],
+            ['5', 'He Zi', '母', '布偶', '2', '4.55', '2017/05/06'],
+        ];
+
+        window.onload = () => {
+            const excel = new Excel('app', demoData);
+        }
+    </script>
+</body>
+</html>

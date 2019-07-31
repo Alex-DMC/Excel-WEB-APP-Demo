@@ -1,0 +1,276 @@
+@charset 'UTF-8';
+/**
+ * Excel demo web app style
+ * @author  Alex
+ * @version 20190725
+ */
+
+/* Reset style */
+* {
+    vertical-align: baseline;
+    font-weight: inherit;
+    font-family: inherit;
+    font-style: inherit;
+    font-size: 100%;
+    outline: 0;
+    padding: 0;
+    margin: 0;
+    border: 0;
+    box-sizing: border-box;
+}
+html {
+    font: 20px/1 'Microsoft YaHei', '\5FAE\8F6F\96C5\9ED1', 'Avenir', Helvetica, Arial, sans-serif;
+    height: 100%;
+
+    ::-webkit-scrollbar-track-piece {background-color: #dcddde; border-radius: 0; }
+    ::-webkit-scrollbar {width: .5rem; height: .5rem; }
+    ::-webkit-scrollbar-thumb {
+        background-color: #9c9c9c;
+        min-width: 1.5rem;
+        min-height: 1.5rem;
+        border-radius: .25rem;
+    }
+    ::-webkit-scrollbar-thumb:hover {background-color: #5f5f5f; }
+}
+
+/* Default value */
+$num-base: 1rem;
+$num-toolbarHeight: $num-base * 3;
+$num-footbarHeight: $num-base;
+$num-labelWidth: $num-base * 2;
+$num-labelHeight: $num-base * 1.5;
+$num-cellWidth: $num-base * 6;
+$num-cellHeight: $num-base * 1.5;
+
+/* Default color */
+$col-text-light: white;
+$col-label: #2c3e50;
+$col-dark: #c1c1c1;
+$col-gray: #dcddde;
+
+/* Default font size */
+%fz-big {
+    font-size: $num-base * .8;
+    line-height: $num-base;
+}
+%fz-normal {
+    font-size: $num-base * .7;
+    line-height: $num-base;
+}
+%fz-small {
+    font-size: $num-base * .6;
+    line-height: $num-base;
+}
+
+/* Mixin */
+@mixin prefixer($property, $value, $sups: webkit) {
+    #{$property}: $value;
+
+    @each $sup in $sups {
+        @if $sup == webkit {
+            -webkit-#{$property}: #{$value};
+        }
+        @else if $sup == moz {
+            -moz-#{$property}: #{$value};
+        }
+        @else if $sup == ms {
+            -ms-#{$property}: #{$value};
+        }
+    }
+}
+
+/* Excel app style */
+.excel {
+    position: relative;
+    overflow: hidden;
+    width: 100vw;
+    height: 100vh;
+    padding-top: $num-toolbarHeight;
+    padding-bottom: $num-footbarHeight;
+
+    &-toolbar {
+        position: absolute;
+        overflow: hidden;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: $num-toolbarHeight;
+        background-color: $col-dark;
+
+        hr {
+            float: left;
+
+            &.sp {
+                width: 1px;
+                height: $num-toolbarHeight - .2rem;
+                background-color: $col-label;
+                margin: .1rem 0;
+            }
+        }
+
+        &--btn {
+            float: left;
+            overflow: hidden;
+            width: $num-toolbarHeight;
+            height: $num-toolbarHeight;
+            border-radius: .25rem;
+            background-color: $col-gray;
+            color: $col-label;
+            box-shadow: inset 0 0 0 2px $col-dark;
+            font-weight: bold;
+            cursor: pointer;
+            @extend %fz-normal;
+            @extend .e-ani;
+
+            &:hover {
+                background-color: rgba(white, .8);
+            }
+            &[disabled] {
+                cursor: not-allowed;
+                background-color: $col-gray!important;
+                opacity: .6;
+            }
+        }
+    }
+
+    &-window {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        padding-top: $num-labelHeight;
+        background-color: rgba($col-label, .6);
+    }
+
+    &-panel {
+        position: relative;
+        overflow: hidden;
+        overflow-y: scroll;
+        width: 100%;
+        height: 100%;
+        padding-left: $num-labelWidth;
+    }
+
+    &-footbar {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: $num-footbarHeight;
+        color: #222;
+        background-color: $col-dark;
+
+        span {
+            float: left;
+            height: 100%;
+            padding: 0 .5rem;
+            box-shadow: inset 0 .15rem 0 $col-dark, inset 0 -0.15rem 0 $col-dark, inset -1px 0 0 rgba($col-label, .6);
+            @extend %fz-small;
+        }
+
+        strong {
+            color: $col-label;
+            font-weight: bold;
+            @extend %fz-normal;
+        }
+    }
+
+    &-label--column {
+        position: absolute;
+        top: 0;
+        left: $num-labelWidth;
+        width: $num-cellWidth * 26;
+        height: $num-labelHeight;
+        background-color: $col-label;
+
+        .label {
+            float: left;
+            width: $num-cellWidth;
+            height: 100%;
+            box-shadow: inset -1px 0 rgba(white, .1);
+        }
+    }
+
+    &-label--row {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: $num-labelWidth;
+        background-color: $col-label;
+
+        .label {
+            display: block;
+            width: $num-labelWidth;
+            height: $num-labelHeight;
+            box-shadow: inset 0 -1px rgba(white, .1);
+            cursor: default!important;
+        }
+    }
+
+    .label {
+        color: $col-text-light;
+        text-align: center;
+        // font-weight: bold;
+        @extend %fz-normal;
+        @extend .e-ani;
+        line-height: $num-labelHeight;
+        cursor: pointer;
+
+        &:hover {
+            background-color: rgba(white, .2);
+        }
+    }
+
+    &-content {
+        width: $num-cellWidth * 26;
+        table-layout: fixed;
+        border-collapse: collapse;
+        background-color: white;
+
+        tr {
+            display: block;
+            height: $num-cellHeight;
+        }
+
+        td {
+            display: inline-block;
+            width: $num-cellWidth;
+            height: 100%;
+            overflow: hidden;
+            white-space: nowrap;
+            // text-overflow: ellipsis;
+            text-align: center;
+            line-height: $num-cellHeight;
+            cursor: pointer;
+            box-shadow: inset -1px -1px rgba($col-label, .2);
+            @extend %fz-normal;
+            @extend .e-ani;
+
+            &:hover {
+                background-color: rgba(black, .1);
+            }
+            &.on {
+                box-shadow: inset 0 0 0 .1rem rgba($col-label, .5);
+            }
+            &.strong {
+                font-weight: bold;
+            }
+            &.italic {
+                font-style: italic;
+            }
+            &.left {
+                text-align: left;
+            }
+            &.center {
+                text-align: center;
+            }
+            &.right {
+                text-align: right;
+            }
+        }
+    }
+}
+
+/* Common style */
+.e-ani {
+    @include prefixer(transition, 'all 0.25s');
+}

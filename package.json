@@ -1,0 +1,27 @@
+{
+  "name": "excel-demo",
+  "version": "0.0.1",
+  "description": "A excel web app demo",
+  "main": "gulpfile.js",
+  "scripts": {
+    "dev": "gulp",
+    "build": "gulp build --env production"
+  },
+  "author": "Alex",
+  "license": "ISC",
+  "devDependencies": {
+    "@babel/core": "^7.5.5",
+    "@babel/preset-env": "^7.5.5",
+    "babel-preset-es2015": "^6.24.1",
+    "browser-sync": "^2.26.7",
+    "gulp": "^4.0.2",
+    "gulp-babel": "^8.0.0",
+    "gulp-minify-css": "^1.2.4",
+    "gulp-rename": "^1.4.0",
+    "gulp-ruby-sass": "^4.0.0",
+    "gulp-typescript": "^5.0.1",
+    "gulp-uglify": "^3.0.2",
+    "typescript": "^3.5.3"
+  },
+  "dependencies": {}
+}

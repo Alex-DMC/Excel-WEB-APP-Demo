@@ -1,4 +1,4 @@
-import { emit } from '../module/message.js';
+import { emit } from '../module/message';
 
 /**
  * Module Cell

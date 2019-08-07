@@ -1,6 +1,6 @@
-import Cell from './cell.js';
-import Export from './export.js';
-import Sort from './sort.js';
+import Cell from './cell';
+import Export from './export';
+import Sort from './sort';
 
 /**
  * Module MessageBus

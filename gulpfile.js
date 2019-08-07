@@ -2,12 +2,15 @@
 const { watch, dest, src, series, parallel } = require('gulp');
 const browserSync = require('browser-sync');
 const reload      = browserSync.reload;
-const typescript  = require('gulp-typescript');
+const browserify  = require('browserify');
+const source      = require('vinyl-source-stream');
+const tsify       = require('tsify');
 const babel       = require('gulp-babel');
-const sass        = require('gulp-ruby-sass');
+const buffer      = require('gulp-buffer');
+const minify      = require('gulp-clean-css');
 const rename      = require('gulp-rename');
-const uglify      = require('gulp-uglify');
-const minify      = require('gulp-minify-css');
+const sass        = require('gulp-sass');
+const uglify      = require('gulp-uglify-es').default;
 
 // 定义配置
 const CONF = {
@@ -15,42 +18,37 @@ const CONF = {
     path : {
         base  : './src/',
         dist  : './dist/',
-        style : 'style/',
         script: 'script/',
+        style : 'style/',
     },
     file : {
-        html  : '**/*.html',
-        css   : '**/*.css',
-        minCss: '**/*.min.css',
-        srcCss: '**/*.scss',
-        js    : '**/*.js',
-        minJs : '**/*.min.js',
-        srcJs : '**/*.js',
-        srcTs : '**/*.ts',
-        min   : '.min',
-        img   : '**/(*.jpg|*.jpeg|*.png|*.gif|*.webp)',
+        entrance: 'excel',
+        srcJs : ['**/*.ts', '**/*.js'], // , '!**/*.min.js'
+		srcCss: '**/*.scss',
+        js    : '**/*.min.js',
+		css   : '**/*.min.css',
+		min   : '.min',
+		img   : '**/(*.jpg|*.jpeg|*.png|*.gif|*.webp)',
+		html  : '**/*.html',
     },
 };
 
 // 任务定义
 exports.default  = series(
     parallel(taskCompileSass, taskCompileTs),
-    parallel(taskCssMinify, taskJsMinify),
     taskCopyFile,
     taskServer,
     taskLivereload,
     taskWatch,
     taskDefault,
 );
-exports.ts       = series(taskCompileTs, taskJsMinify);
+exports.ts       = taskCompileTs;
+exports.css      = taskCompileSass;
 exports.compile  = parallel(taskCompileSass, taskCompileTs);
-exports.compress = parallel(taskCssMinify, taskJsMinify);
-exports.watchcss = series(taskCompileSass, taskCssMinify);
 exports.run      = taskServer;
 exports.test     = taskWatch;
 exports.build    = series(
     parallel(taskCompileSass, taskCompileTs),
-    parallel(taskCssMinify, taskJsMinify),
     taskCopyFile,
 );
 
@@ -77,15 +75,11 @@ function taskLivereload(cb) {
     console.log('--- Livereload Start...');
 
     watch([
+        CONF.file.css,
         CONF.file.html,
-        CONF.file.minCss,
-        CONF.file.minJs,
-        CONF.file.img
-    ], {cwd: CONF.path.dist}, function(cb) {
-        setTimeout(reload, 1000);
-        // reload();
-        cb();
-    });
+        CONF.file.img,
+        CONF.file.js,
+    ], {cwd: CONF.path.dist}).on('change', reload);
 
     cb();
 }
@@ -93,95 +87,72 @@ function taskLivereload(cb) {
 function taskWatch(cb) {
     console.log('--- Watch Start...');
 
-    watch(CONF.path.style + CONF.file.srcCss, {cwd: CONF.path.base}, series(taskCompileSass, taskCssMinify));
-    watch(CONF.path.script + CONF.file.srcTs, {cwd: CONF.path.base}, series(taskCompileTs, taskJsMinify));
+    watch(CONF.file.srcCss, {cwd: CONF.path.base}, taskCompileSass);
+    watch(CONF.file.srcJs, {cwd: CONF.path.base}, taskCompileTs);
     watch(CONF.file.html, {cwd: CONF.path.base}, taskCopyFile);
 
     cb();
 }
 
-function taskCompileTs(cb) {
+function taskCompileTs() {
     console.log('--- Compile Typesctipt...');
 
-    src(CONF.path.base + CONF.path.script + CONF.file.srcTs)
-        .pipe(typescript({
-            // module: 'commonJs',
-            target: 'es2015',
-            sourceMap: true,
-            noImplicitAny: true,
+    let stream = browserify({
+            basedir     : CONF.path.base,
+            entries     : [`${CONF.path.script}${CONF.file.entrance}.ts`],
+            standalone  : CONF.file.entrance,
+            debug       : !CONF.prod,
+        })
+        .plugin(tsify, {
+            target        : 'es2015',
+            noImplicitAny : true,
             removeComments: true,
-        }))
-        .pipe(dest(CONF.path.dist + CONF.path.script));
-    src(CONF.path.base + CONF.path.script + CONF.file.js)
-        .pipe(dest(CONF.path.dist + CONF.path.script));
+        })
+        .transform('babelify', {
+            presets: [
+                ['@babel/preset-env', {
+                    targets: {
+                        browsers: ['> 1%', 'last 2 versions', 'not ie <= 10'],
+                    },
+                }],
+            ]
+        })
+        .bundle()
+        .pipe(source(`${CONF.file.entrance}${CONF.file.min}.js`));
 
-    cb();
+    if(CONF.prod)
+        stream
+            .pipe(buffer())
+            .pipe(uglify());
+
+    stream
+        // .pipe(rename({ suffix: CONF.file.min }))
+        .pipe(dest(CONF.path.script, {cwd: CONF.path.dist}));
+
+    return stream;
 }
 
-function taskJsMinify(cb) {
-    console.log('--- Compress JS...');
-
-    if(CONF.prod) {
-        src([CONF.path.script + CONF.file.js, '!'+ CONF.path.script + CONF.file.minJs], {cwd: CONF.path.dist})
-            // .pipe(babel({
-            //     babelrc: false,
-            //     presets: ['es2015'],
-            //     comments: false,
-            // }))
-            .pipe(uglify())
-            .pipe(rename({ suffix: CONF.file.min }))
-            .pipe(dest(CONF.path.dist + CONF.path.script));
-    }else {
-        src([CONF.path.script + CONF.file.js, '!'+ CONF.path.script + CONF.file.minJs], {cwd: CONF.path.dist})
-            .pipe(rename({ suffix: CONF.file.min }))
-            .pipe(dest(CONF.path.dist + CONF.path.script));
-    }
-
-    cb();
-}
-
-function taskCompileSass(cb) {
+function taskCompileSass() {
     console.log('--- Compile Sass...');
 
-    sass(CONF.path.base + CONF.path.style + CONF.file.srcCss)
-        .pipe(dest(CONF.path.dist + CONF.path.style));
+    let stream = src(CONF.file.srcCss, {cwd: CONF.path.base + CONF.path.style})
+        .pipe(sass());
 
-    cb();
-}
+    if(CONF.prod) stream.pipe(minify());
 
-function taskCssMinify(cb) {
-    console.log('--- Compress CSS...');
+    stream
+        .pipe(rename({ suffix: CONF.file.min }))
+        .pipe(dest(CONF.path.style, {cwd: CONF.path.dist}));
 
-    if(CONF.prod) {
-        src([
-            CONF.path.style + CONF.file.css,
-            '!'+ CONF.path.style + CONF.file.minCss
-        ], {cwd: CONF.path.dist})
-            .pipe(minify({
-                keepSpecialComments: '*'
-            }))
-            .pipe(rename({ suffix: CONF.file.min }))
-            .pipe(dest(CONF.path.dist + CONF.path.style));
-    }else {
-        src([
-            CONF.path.style + CONF.file.css,
-            '!'+ CONF.path.style + CONF.file.minCss
-        ], {cwd: CONF.path.dist})
-            .pipe(rename({ suffix: CONF.file.min /* extname: '.min.css' */ }))
-            .pipe(dest(CONF.path.dist + CONF.path.style));
-    }
-
-    cb();
+    return stream;
 }
 
 function taskCopyFile(cb) {
     console.log('--- Copy Files...');
 
-    src([
+    return src([
         CONF.file.html,
-        CONF.file.img
+        CONF.file.img,
     ], {cwd: CONF.path.base})
         .pipe(dest(CONF.path.dist));
-
-    cb();
 }

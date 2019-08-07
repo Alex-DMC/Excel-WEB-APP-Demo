@@ -61,9 +61,12 @@
 
     <footer></footer>
 
-    <script type="module">
+    <!-- <script type="module">
         import Excel from './script/excel.min.js';
+    </script> -->
 
+    <script src="./script/excel.min.js"></script>
+    <script>
         const demoData = [
             ['编号', '昵称', '性别', '品种', '年龄', '体重(KG)', '登记日期'],
             ['1', 'Chun Juan', '公', '大橘', '1.5', '3.25', '2017/10/01'],
@@ -73,9 +76,7 @@
             ['5', 'He Zi', '母', '布偶', '2', '4.55', '2017/05/06'],
         ];
 
-        window.onload = () => {
-            const excel = new Excel('app', demoData);
-        }
+        var excel = new excel.default('app', demoData);
     </script>
 </body>
 </html>

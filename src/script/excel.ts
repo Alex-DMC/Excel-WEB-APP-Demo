@@ -1,7 +1,7 @@
-import { button as configButton, grid as configGrid, column as configColumn } from './config/layout.js';
-import ViewLayout from './view/layout.js';
-import MessageBus from './module/message.js';
-import Cell from './module/cell.js';
+import { button as configButton, grid as configGrid, column as configColumn } from './config/layout';
+import ViewLayout from './view/layout';
+import MessageBus from './module/message';
+import Cell from './module/cell';
 
 /**
  * Excel demo web app code

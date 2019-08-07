@@ -1,6 +1,6 @@
-import Toolsbar from './toolsbar.js';
-import Footerbar from './footerbar.js';
-import { emit } from '../module/message.js';
+import Toolsbar from './toolsbar';
+import Footerbar from './footerbar';
+import { emit } from '../module/message';
 
 /**
  * Component Layout
